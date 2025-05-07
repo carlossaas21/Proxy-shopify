@@ -1,5 +1,5 @@
-from flask import Flask, request, jsonify, make_response
-from flask_cors import CORS, cross_origin
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import requests
 import os
 import logging
@@ -23,7 +23,6 @@ CORS(app, resources={
 })
 
 @app.route('/proxy/customers', methods=['GET', 'OPTIONS'])
-@cross_origin()  # Adiciona suporte a CORS na rota
 def get_shopify_customers():
     logger.info("Recebida requisição para /proxy/customers")
     logger.info(f"Parâmetros: shop_domain={request.args.get('shop_domain')}, access_token={request.args.get('access_token')}")
@@ -35,12 +34,9 @@ def get_shopify_customers():
     # Validar parâmetros
     if not shop_domain or not access_token:
         logger.error("Parâmetros shop_domain e access_token são obrigatórios")
-        response = jsonify({
+        return jsonify({
             'error': 'Parâmetros shop_domain e access_token são obrigatórios'
-        })
-        response.status_code = 400
-        response.headers.add('Access-Control-Allow-Origin', 'https://ecomlyze-62237.bubbleapps.io')
-        return response
+        }), 400
 
     # Construir a URL da API do Shopify
     api_url = f'https://{shop_domain}/admin/api/2023-04/customers.json'
@@ -57,29 +53,20 @@ def get_shopify_customers():
 
         logger.info("Requisição ao Shopify bem-sucedida")
         # Retornar os dados dos clientes
-        resp = jsonify(response.json())
-        resp.status_code = 200
-        resp.headers.add('Access-Control-Allow-Origin', 'https://ecomlyze-62237.bubbleapps.io')
-        return resp
+        return jsonify(response.json()), 200
 
     except requests.exceptions.HTTPError as http_err:
         logger.error(f"Erro HTTP ao acessar a API do Shopify: {str(http_err)}")
-        response = jsonify({
+        return jsonify({
             'error': f'Erro HTTP ao acessar a API do Shopify: {str(http_err)}',
             'details': response.text if 'response' in locals() else 'Sem detalhes'
-        })
-        response.status_code = response.status_code if 'response' in locals() else 500
-        response.headers.add('Access-Control-Allow-Origin', 'https://ecomlyze-62237.bubbleapps.io')
-        return response
+        }), response.status_code if 'response' in locals() else 500
 
     except requests.exceptions.RequestException as err:
         logger.error(f"Erro ao acessar a API do Shopify: {str(err)}")
-        response = jsonify({
+        return jsonify({
             'error': f'Erro ao acessar a API do Shopify: {str(err)}'
-        })
-        response.status_code = 500
-        response.headers.add('Access-Control-Allow-Origin', 'https://ecomlyze-62237.bubbleapps.io')
-        return response
+        }), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
