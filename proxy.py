@@ -3,6 +3,7 @@ from flask_cors import CORS
 import requests
 import os
 import logging
+import certifi
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -47,13 +48,12 @@ def get_shopify_customers():
 
     try:
         logger.info(f"Fazendo requisição para Shopify: {api_url}")
-        # Fazer a requisição para a API do Shopify
-        response = requests.get(api_url, headers=headers, timeout=10)
+        # Fazer a requisição para a API do Shopify com certificados do certifi
+        response = requests.get(api_url, headers=headers, timeout=10, verify=certifi.where())
+        logger.debug(f"Resposta bruta do Shopify: {response.text}")
         response.raise_for_status()  # Levanta um erro para códigos de status 4xx/5xx
 
         logger.info("Requisição ao Shopify bem-sucedida")
-        logger.debug(f"Resposta do Shopify: {response.text}")
-        # Retornar os dados dos clientes
         return jsonify(response.json()), 200
 
     except requests.exceptions.HTTPError as http_err:
@@ -62,13 +62,19 @@ def get_shopify_customers():
         return jsonify({
             'error': f'Erro HTTP ao acessar a API do Shopify: {str(http_err)}',
             'details': response.text if 'response' in locals() else 'Sem detalhes'
-        }), response.status_code
+        }), response.status_code if 'response' in locals() else 500
 
     except requests.exceptions.Timeout:
         logger.error("Timeout ao acessar a API do Shopify")
         return jsonify({
             'error': 'Timeout ao acessar a API do Shopify'
         }), 504
+
+    except requests.exceptions.ConnectionError as conn_err:
+        logger.error(f"Erro de conexão ao acessar a API do Shopify: {str(conn_err)}")
+        return jsonify({
+            'error': f'Erro de conexão ao acessar a API do Shopify: {str(conn_err)}'
+        }), 502
 
     except requests.exceptions.RequestException as err:
         logger.error(f"Erro ao acessar a API do Shopify: {str(err)}")
@@ -77,7 +83,7 @@ def get_shopify_customers():
         }), 502
 
     except Exception as e:
-        logger.error(f"Erro inesperado no proxy: {str(e)}")
+        logger.error(f"Erro inesperado no proxy: {str(e)}", exc_info=True)
         return jsonify({
             'error': f'Erro inesperado no proxy: {str(e)}'
         }), 500
