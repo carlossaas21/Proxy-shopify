@@ -52,20 +52,34 @@ def get_shopify_customers():
         response.raise_for_status()  # Levanta um erro para códigos de status 4xx/5xx
 
         logger.info("Requisição ao Shopify bem-sucedida")
+        logger.debug(f"Resposta do Shopify: {response.text}")
         # Retornar os dados dos clientes
         return jsonify(response.json()), 200
 
     except requests.exceptions.HTTPError as http_err:
         logger.error(f"Erro HTTP ao acessar a API do Shopify: {str(http_err)}")
+        logger.error(f"Resposta do Shopify: {response.text if 'response' in locals() else 'Sem resposta'}")
         return jsonify({
             'error': f'Erro HTTP ao acessar a API do Shopify: {str(http_err)}',
             'details': response.text if 'response' in locals() else 'Sem detalhes'
-        }), response.status_code if 'response' in locals() else 500
+        }), response.status_code
+
+    except requests.exceptions.Timeout:
+        logger.error("Timeout ao acessar a API do Shopify")
+        return jsonify({
+            'error': 'Timeout ao acessar a API do Shopify'
+        }), 504
 
     except requests.exceptions.RequestException as err:
         logger.error(f"Erro ao acessar a API do Shopify: {str(err)}")
         return jsonify({
             'error': f'Erro ao acessar a API do Shopify: {str(err)}'
+        }), 502
+
+    except Exception as e:
+        logger.error(f"Erro inesperado no proxy: {str(e)}")
+        return jsonify({
+            'error': f'Erro inesperado no proxy: {str(e)}'
         }), 500
 
 if __name__ == '__main__':
