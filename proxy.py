@@ -23,6 +23,39 @@ CORS(app, resources={
     }
 })
 
+def get_customer_orders(shop_domain, access_token, customer_id):
+    """Obtém os pedidos de um cliente específico"""
+    api_url = f'https://{shop_domain}/admin/api/2023-04/customers/{customer_id}/orders.json'
+    headers = {
+        'X-Shopify-Access-Token': access_token,
+        'Content-Type': 'application/json'
+    }
+    
+    try:
+        response = requests.get(api_url, headers=headers, timeout=10, verify=certifi.where())
+        response.raise_for_status()
+        return response.json().get('orders', [])
+    except Exception as e:
+        logger.error(f"Erro ao buscar pedidos do cliente {customer_id}: {str(e)}")
+        return []
+
+def format_customer_data(customer, orders):
+    """Formata os dados do cliente com as informações solicitadas"""
+    return {
+        'first_name': customer.get('first_name', ''),
+        'last_name': customer.get('last_name', ''),
+        'phone': customer.get('phone', ''),
+        'orders': [
+            {
+                'product_id': item.get('product_id'),
+                'product_title': item.get('title', ''),
+                'quantity': item.get('quantity', 0)
+            }
+            for order in orders
+            for item in order.get('line_items', [])
+        ]
+    }
+
 @app.route('/proxy/customers', methods=['GET', 'OPTIONS'])
 def get_shopify_customers():
     logger.info("Recebida requisição para /proxy/customers")
@@ -48,13 +81,22 @@ def get_shopify_customers():
 
     try:
         logger.info(f"Fazendo requisição para Shopify: {api_url}")
-        # Fazer a requisição para a API do Shopify com certificados do certifi
         response = requests.get(api_url, headers=headers, timeout=10, verify=certifi.where())
-        logger.debug(f"Resposta bruta do Shopify: {response.text}")
-        response.raise_for_status()  # Levanta um erro para códigos de status 4xx/5xx
+        response.raise_for_status()
+
+        # Processar a resposta
+        customers_data = response.json().get('customers', [])
+        formatted_customers = []
+
+        for customer in customers_data:
+            # Buscar pedidos do cliente
+            orders = get_customer_orders(shop_domain, access_token, customer['id'])
+            # Formatar dados do cliente
+            formatted_customer = format_customer_data(customer, orders)
+            formatted_customers.append(formatted_customer)
 
         logger.info("Requisição ao Shopify bem-sucedida")
-        return jsonify(response.json()), 200
+        return jsonify({'customers': formatted_customers}), 200
 
     except requests.exceptions.HTTPError as http_err:
         logger.error(f"Erro HTTP ao acessar a API do Shopify: {str(http_err)}")
