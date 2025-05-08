@@ -25,11 +25,16 @@ CORS(app, resources={
 
 def format_customer_data(customer):
     """Formata os dados do cliente com as informações solicitadas"""
-    return {
+    customer_data = {
         'first_name': customer.get('first_name', ''),
-        'last_name': customer.get('last_name', ''),
-        'phone': customer.get('phone', '')
+        'last_name': customer.get('last_name', '')
     }
+    
+    # Adiciona o telefone apenas se existir
+    if customer.get('phone'):
+        customer_data['phone'] = customer.get('phone')
+        
+    return customer_data
 
 @app.route('/proxy/customers', methods=['GET', 'OPTIONS'])
 def get_shopify_customers():
@@ -64,7 +69,7 @@ def get_shopify_customers():
         formatted_customers = [format_customer_data(customer) for customer in customers_data]
 
         logger.info("Requisição ao Shopify bem-sucedida")
-        return jsonify({'customers': formatted_customers}), 200
+        return jsonify(formatted_customers), 200
 
     except requests.exceptions.HTTPError as http_err:
         logger.error(f"Erro HTTP ao acessar a API do Shopify: {str(http_err)}")
