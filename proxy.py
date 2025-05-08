@@ -33,18 +33,21 @@ def format_customer_data(customer: Dict[str, Any]) -> Dict[str, str]:
         
     Returns:
         Dict[str, str]: Dicionário formatado com os campos:
-            - Nome (str): Nome do cliente (string vazia se não existir)
-            - sobrenome (str): Sobrenome do cliente (string vazia se não existir)
-            - phone (str, opcional): Número de telefone (só incluído se existir)
+            - Nome (str): Nome do cliente ("Sem informação" se não existir)
+            - sobrenome (str): Sobrenome do cliente ("Sem informação" se não existir)
+            - phone (str): Número de telefone ("Sem informação" se não existir)
     """
+    # Função auxiliar para tratar valores vazios ou None
+    def format_value(value: Any) -> str:
+        if value is None or value == "" or value == "None":
+            return "Sem informação"
+        return str(value)
+
     customer_data: Dict[str, str] = {
-        'Nome': str(customer.get('first_name', '')),
-        'sobrenome': str(customer.get('last_name', ''))
+        'Nome': format_value(customer.get('first_name')),
+        'sobrenome': format_value(customer.get('last_name')),
+        'phone': format_value(customer.get('phone'))
     }
-    
-    # Adiciona o telefone apenas se existir
-    if customer.get('phone'):
-        customer_data['phone'] = str(customer.get('phone'))
         
     return customer_data
 
