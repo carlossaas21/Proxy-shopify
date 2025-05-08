@@ -4,6 +4,7 @@ import requests
 import os
 import logging
 import certifi
+from typing import Dict, Any, List, Optional
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -23,16 +24,27 @@ CORS(app, resources={
     }
 })
 
-def format_customer_data(customer):
-    """Formata os dados do cliente com as informações solicitadas"""
-    customer_data = {
-        'first_name': customer.get('first_name', ''),
-        'last_name': customer.get('last_name', '')
+def format_customer_data(customer: Dict[str, Any]) -> Dict[str, str]:
+    """
+    Formata os dados do cliente com as informações solicitadas.
+    
+    Args:
+        customer (Dict[str, Any]): Dicionário com os dados do cliente do Shopify
+        
+    Returns:
+        Dict[str, str]: Dicionário formatado com os campos:
+            - Nome (str): Nome do cliente (string vazia se não existir)
+            - sobrenome (str): Sobrenome do cliente (string vazia se não existir)
+            - phone (str, opcional): Número de telefone (só incluído se existir)
+    """
+    customer_data: Dict[str, str] = {
+        'Nome': str(customer.get('first_name', '')),
+        'sobrenome': str(customer.get('last_name', ''))
     }
     
     # Adiciona o telefone apenas se existir
     if customer.get('phone'):
-        customer_data['phone'] = customer.get('phone')
+        customer_data['phone'] = str(customer.get('phone'))
         
     return customer_data
 
