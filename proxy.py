@@ -84,7 +84,7 @@ def get_shopify_customers():
         formatted_customers = [format_customer_data(customer) for customer in customers_data]
 
         logger.info("Requisição ao Shopify bem-sucedida")
-        return jsonify(formatted_customers), 200
+        return jsonify({'users': formatted_customers}), 200
 
     except requests.exceptions.HTTPError as http_err:
         logger.error(f"Erro HTTP ao acessar a API do Shopify: {str(http_err)}")
