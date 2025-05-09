@@ -24,7 +24,7 @@ CORS(app, resources={
     }
 })
 
-def format_customer_data(customer: Dict[str, Any]) -> Dict[str, str]:
+def format_customer_data(customer: Dict[str, Any]) -> Dict[str, Any]:
     """
     Formata os dados do cliente com as informações solicitadas.
     
@@ -32,21 +32,23 @@ def format_customer_data(customer: Dict[str, Any]) -> Dict[str, str]:
         customer (Dict[str, Any]): Dicionário com os dados do cliente do Shopify
         
     Returns:
-        Dict[str, str]: Dicionário formatado com os campos:
-            - Nome (str): Nome do cliente ("Sem informação" se não existir)
-            - sobrenome (str): Sobrenome do cliente ("Sem informação" se não existir)
-            - phone (str): Número de telefone ("Sem informação" se não existir)
+        Dict[str, Any]: Dicionário formatado com os campos:
+            - Nome (str): Nome do cliente
+            - sobrenome (str): Sobrenome do cliente
+            - phone (str): Número de telefone
+            - email (str): Email do cliente
     """
     # Função auxiliar para tratar valores vazios ou None
-    def format_value(value: Any) -> str:
+    def format_value(value: Any) -> Any:
         if value is None or value == "" or value == "None":
-            return "Sem informação"
+            return None
         return str(value).strip()
 
-    customer_data: Dict[str, str] = {
+    customer_data: Dict[str, Any] = {
         'Nome': format_value(customer.get('first_name')),
         'sobrenome': format_value(customer.get('last_name')),
-        'phone': format_value(customer.get('phone'))
+        'phone': format_value(customer.get('phone')),
+        'email': format_value(customer.get('email'))
     }
         
     return customer_data
