@@ -41,7 +41,7 @@ def format_customer_data(customer: Dict[str, Any]) -> Dict[str, str]:
     def format_value(value: Any) -> str:
         if value is None or value == "" or value == "None":
             return "Sem informação"
-        return str(value)
+        return str(value).strip()
 
     customer_data: Dict[str, str] = {
         'Nome': format_value(customer.get('first_name')),
@@ -84,7 +84,7 @@ def get_shopify_customers():
         formatted_customers = [format_customer_data(customer) for customer in customers_data]
 
         logger.info("Requisição ao Shopify bem-sucedida")
-        return jsonify({'users': formatted_customers}), 200
+        return jsonify(formatted_customers), 200
 
     except requests.exceptions.HTTPError as http_err:
         logger.error(f"Erro HTTP ao acessar a API do Shopify: {str(http_err)}")
