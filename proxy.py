@@ -12,11 +12,12 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Configurar CORS permitindo especificamente o domínio do Bubble
+# Configurar CORS permitindo especificamente os domínios necessários
 CORS(app, resources={
     r"/proxy/customers": {
         "origins": [
             "https://ecomlyze-62237.bubbleapps.io",
+            "https://app.ecomlyze.com",  # Adicionado domínio do erro
             "http://localhost:3000"  # Para testes locais, se necessário
         ],
         "allow_headers": ["Content-Type", "Authorization"],
