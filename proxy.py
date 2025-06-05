@@ -6,6 +6,7 @@ import logging
 import certifi
 from typing import Dict, Any, List, Optional
 
+
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
