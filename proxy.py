@@ -17,7 +17,7 @@ CORS(app, resources={
     r"/proxy/customers": {
         "origins": [
             "https://ecomlyze-62237.bubbleapps.io",
-            "https://app.ecomlyze.com",  # Adicionado domínio do erro
+            "https://app.comvertx.com.br",  # Adicionado domínio do erro
             "http://localhost:3000"  # Para testes locais, se necessário
         ],
         "allow_headers": ["Content-Type", "Authorization"],
