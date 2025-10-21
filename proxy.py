@@ -71,7 +71,7 @@ def get_shopify_customers():
         }), 400
 
     # Construir a URL da API do Shopify
-    api_url = f'https://{shop_domain}/admin/api/2023-04/customers.json'
+    api_url = f'https://{shop_domain}/admin/api/2023-04/customers.json?limit=250'
     headers = {
         'X-Shopify-Access-Token': access_token,
         'Content-Type': 'application/json'
